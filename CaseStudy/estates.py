@@ -59,8 +59,6 @@ class House(Property):
 
     promp_init = staticmethod(promp_init)
 
-
-
 class Apartment(Property):
     valid_balconies = ("yes", "no", "solarium")
     valid_laundries = ("coin", "ensuite", "none")
@@ -96,6 +94,7 @@ class Purchase:
         self.taxes = taxes
 
     def display(self):
+        super().display()
         print(f"PURCHASE DETAILS\n{'='*20}")
         print(f'Selling Price: {self.price}')
         print(f'Tax Involed: {self.taxes}')
@@ -115,6 +114,7 @@ class Rental:
         self.rent = rent
 
     def display(self):
+        super().display()
         print(f"RENT DETAILS\n{'='*20}")
         print(f'Furnishing: {self.furnished}')
         print(f'Available Utilities: {self.utilities}')
@@ -128,26 +128,63 @@ class Rental:
         )
     promp_init = staticmethod(promp_init)
 
-
-
 class HouseRental(Rental, House):
-    pass
-
-
+    def promp_init():
+        init = House.promp_init()
+        init.update(Rental.promp_init())
+        return init
+    promp_init = staticmethod(promp_init)
+    
 
 class HousePurchase(Purchase, House):
-    pass
+    def promp_init():
+        init = House.promp_init()
+        init.update(Purchase.promp_init())
+        return init
+    promp_init = staticmethod(promp_init)
 
 class ApartmentRental(Rental, Apartment):
-    pass
-
-
+    def promp_init():
+        init = Apartment.promp_init()
+        init.update(Rental.promp_init())
+        return init
+    promp_init = staticmethod(promp_init)
 
 class ApartmentPurchase(Purchase, Apartment):
-    pass
-
+    def promp_init():
+        init = Apartment.promp_init()
+        init.update(Purchase.promp_init())
+        return init 
+    promp_init = staticmethod(promp_init)
 
 
 class Agent:
-    pass
+    def __init__(self):
+        self.property_list = []
 
+    agent_choice = {
+        ("house", "rental"):HouseRental,
+        ("house", "purchase"):HousePurchase,
+        ("apartment", "rental"):ApartmentRental,
+        ("apartment", "purchase"):ApartmentPurchase
+    }
+
+    def add_property(self):
+        property_type = get_init_input('Which Property? ', ("house", "apartment"))
+        purchase_type = get_init_input('Purchase Type? ', ("rental", "purchase"))
+
+        propertyClass = self.agent_choice[(property_type, purchase_type)]
+        prompts =  propertyClass.promp_init()
+        # print(prompts)
+
+        self.property_list.append(propertyClass(**prompts))
+
+    def display_property(self):
+        for property in self.property_list:
+            property.display()
+
+
+
+agent = Agent()
+agent.add_property()
+agent.display_property()
